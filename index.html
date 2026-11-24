@@ -1,0 +1,183 @@
+<!-- Smart AI Button - Frontend me add karo -->
+<!-- Isko <body> ke andar, chat-btn ke upar paste karo -->
+<button onclick="openboard()" style="position:fixed;bottom:92px;right:18px;width:62px;height:62px;border-radius:50%;background:linear-gradient(135deg,#facc15,#f97316);border:none;font-size:28px;cursor:pointer;z-index:999;box-shadow:0 10px 30px rgba(250,204,21,.5)">🧠</button>
+
+<!-- Smart AI Popup (Shuru me display:none rakha hai taaki apne aap na khule) -->
+<div id="boardbox" style="position:fixed;inset:0;background:#050a1a;z-index:2000;display:none;flex-direction:column">
+  <div style="background:linear-gradient(90deg,#00e5ff,#2563eb);color:#000;padding:16px;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <b style="font-size:19px">🧠 Aionex Smart AI</b><br>
+      <small style="font-weight:600">Koi bhi sawal pucho - koi bhi problem do - hal milega!</small>
+    </div>
+    <span onclick="closeboard()" style="font-size:26px;cursor:pointer;font-weight:bold">✕</span>
+  </div>
+
+  <!-- Board Menu - 6 Kaam -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px">
+    <button onclick="boardask('mujhe business idea do')" style="background:#0a1230;border:1px solid #00e5ff;color:#00e5ff;padding:10px;border-radius:12px;font-size:12px;cursor:pointer">💡 Business Idea</button>
+    <button onclick="boardask('maths solve karo - 25 x 48')" style="background:#0a1230;border:1px solid #00e5ff;color:#00e5ff;padding:10px;border-radius:12px;font-size:12px;cursor:pointer">🧮 Maths Solver</button>
+    <button onclick="boardask('mujhe ek accha caption likh ke do')" style="background:#0a1230;border:1px solid #00e5ff;color:#00e5ff;padding:10px;border-radius:12px;font-size:12px;cursor:pointer">✍️ Caption / Post</button>
+    <button onclick="boardask('english me translate karo - main jagatsinghpur se hu')" style="background:#0a1230;border:1px solid #00e5ff;color:#00e5ff;padding:10px;border-radius:12px;font-size:12px;cursor:pointer">🌐 Translate</button>
+    <button onclick="boardask('website ke liye content likho')" style="background:#0a1230;border:1px solid #00e5ff;color:#00e5ff;padding:10px;border-radius:12px;font-size:12px;cursor:pointer">💻 Website Content</button>
+    <button onclick="boardask('mujhe motivation do')" style="background:#0a1230;border:1px solid #00e5ff;color:#00e5ff;padding:10px;border-radius:12px;font-size:12px;cursor:pointer">🔥 Motivation</button>
+  </div>
+
+  <!-- Messages Area -->
+  <div id="boardmsgs" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px"></div>
+
+  <!-- Input Area -->
+  <div style="display:flex;gap:8px;padding:12px;background:#0a1230;border-top:1px solid #1e3a5f">
+    <input id="boardinput" placeholder="Koi bhi problem likho... maths, business, english, code - sab!" style="flex:1;padding:12px;border-radius:12px;border:1px solid #1e3a5f;background:#050a1a;color:#fff;outline:none;margin:0">
+    <button onclick="sendboard()" style="background:#00e5ff;color:#000;border:none;padding:0 18px;border-radius:12px;font-weight:900;font-size:18px;cursor:pointer">➤</button>
+  </div>
+</div>
+
+<script>
+// ===== Smart AI Board Brain =====
+let boardopened = false;
+let boardlastq = "";
+
+function openboard() {
+  const box = document.getElementById('boardbox');
+  box.style.display = 'flex';
+  if (!boardopened) {
+    boardopened = true;
+    boardadd('bot', "Namaste Bablu! 🙏 Main Aionex Smart AI Board hu!\n\nMain kya-kya kar sakta hu:\n\n🧮 Maths - koi bhi hisab\n💡 Business Idea - naya dhandha\n✍️ Caption / Post - Instagram ke liye\n🌐 Translate - Hindi to English\n💻 Website / Code - sab likh dunga\n🔥 Motivation - jab man down ho\n❤️ Health Tip - sehat ke liye\n📚 Padhai - koi bhi subject\n\nBolo, aaj kya problem hai? Likho yaha 👇");
+  }
+}
+
+function closeboard() {
+  document.getElementById('boardbox').style.display = 'none';
+}
+
+function boardadd(who, text) {
+  let d = document.createElement('div');
+  d.style.cssText = `padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.6;max-width:92%;white-space:pre-line;${who === 'bot' ? 'background:#1e293b;color:#e2e8f0;align-self:flex-start' : 'background:#00e5ff;color:#000;align-self:flex-end;font-weight:600'}`;
+  d.innerText = text;
+  const msgs = document.getElementById('boardmsgs');
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function boardask(t) {
+  document.getElementById('boardinput').value = t;
+  sendboard();
+}
+
+function sendboard() {
+  let inp = document.getElementById('boardinput');
+  let q = inp.value.trim();
+  if (!q) return;
+  boardadd('user', q);
+  inp.value = '';
+  boardadd('bot', "⏳ Soch raha hu...");
+  
+  setTimeout(() => {
+    let msgs = document.getElementById('boardmsgs');
+    if (msgs.lastChild) {
+      msgs.removeChild(msgs.lastChild);
+    }
+    let ans = smartbrain(q);
+    boardadd('bot', ans);
+    
+    // Agar aapke main app me 'chats' aur 'save()' function bane hain to ye save karega
+    if (typeof chats !== 'undefined' && typeof save === 'function') {
+      chats.push({ q, a: ans, time: new Date().toLocaleString('en-IN') });
+      save();
+    }
+  }, 700);
+}
+
+function smartbrain(qorig) {
+  let q = qorig.toLowerCase();
+  
+  // Repeat check
+  if (q === boardlastq) return "Are ye to tumne abhi pucha tha! 😅 Chalo naya sawal pucho - maths, business, caption, kuch bhi! Main sab kar dunga.";
+  boardlastq = q;
+
+  // 1. Maths Solver
+  try {
+    let mathq = q.replace(/x/g, '*').replace(/×/g, '*').replace(/,/g, '');
+    let m = mathq.match(/(\d+)\s*([\+\-\*\/\%])\s*(\d+)/);
+    if (m && (q.includes('+') || q.includes('-') || q.includes('*') || q.includes('/') || q.includes('x') || q.includes('guna') || q.includes('jod') || q.includes('solve') || q.includes('hisab') || q.includes('maths') || q.includes('ganit'))) {
+      let a = parseFloat(m[1]), b = parseFloat(m[3]), op = m[2], res = 0, opname = "";
+      if (op === '+') { res = a + b; opname = "Jod"; }
+      if (op === '-') { res = a - b; opname = "Ghata"; }
+      if (op === '*') { res = a * b; opname = "Guna"; }
+      if (op === '/') { res = (a / b).toFixed(2); opname = "Bhag"; }
+      if (op === '%') { res = a % b; opname = "Bacha hua"; }
+      return `🧮 Maths hal ho gaya!\n\n${a} ${op} ${b} = ${res}\n\nSamjho aise:\n${opname} karne pe ${a} aur ${b} se ${res} aaya.\n\nAur koi hisab hai to bhejo! 500 ka 20% ya 1000 / 4 - kuch bhi!`;
+    }
+    if (q.includes('%') && q.includes('ka')) {
+      let mm = q.match(/(\d+)\s*ka\s*(\d+)/);
+      if (mm) {
+        let total = parseFloat(mm[1]), per = parseFloat(mm[2]);
+        return `🧮 ${total} ka ${per}% = ${(total * per / 100)}\n\nAise nikala: ${total} x ${per} / 100 = ${(total * per / 100)}`;
+      }
+    }
+  } catch (e) {}
+
+  // 2. Business Idea
+  if (q.includes('business') || q.includes('dhandha') || q.includes('idea') || q.includes('paisa') || q.includes('kamai') || q.includes('startup') || q.includes('dukkan')) {
+    let ideas = [
+      "💡 Business Idea #1 - Digital Seva:\nJagatsinghpur me logon ko website, digital card, poster chahiye. Tum Aionex se ye shuru karo. Lagat - 0, Kamai - ₹1499 per website!\n\nIdea #2 - Photo + Video Editing:\nReels banao, logo ke liye poster banao. Ek reel ka ₹200-500 milta hai.\n\nIdea #3 - Tuition + AI Sikhana:\nBacchon ko AI sikhana shuru karo. Sabse naya aur sabse zyada demand wala kaam!",
+      "💡 Business Idea - Ghar Se:\n\n1. WhatsApp Business - apne gaon ke dukaano ki website banao\n2. YouTube - Aionex ke baare me video banao\n3. Kirana Delivery - gaon me online order lo\n\nSabse pehle kaunsa karna hai bolo? Main pura plan bana dunga!",
+      "💡 Paisa Kamane Ka Tarika:\n\nStep 1 - Ek skill sikho (website banana)\nStep 2 - 5 logo ko free me bana ke dikhao\nStep 3 - 6ve se ₹1499 lo\nStep 4 - Unke doston ko bhi banao\n\nEk mahine me 10 website = ₹14,990! Karna hai to bolo - main plan bana du?"
+    ];
+    return ideas[Math.floor(Math.random() * ideas.length)];
+  }
+
+  // 3. Caption / Post / Shayari
+  if (q.includes('caption') || q.includes('post') || q.includes('shayari') || q.includes('status') || q.includes('bio') || q.includes('likh')) {
+    return `✍️ Tumhare liye ready caption:\n\n"Mehnat itni khamoshi se karo ki safalta shor macha de! 🔥"\n\nAur ek:\n"Aionex - Jo sochta hai, seekhta hai, jeetata hai! 🚀"\n\nAur Instagram Bio ke liye:\n"Jagatsinghpur | AI Creator | Website ₹1499 | DM karo 📩"\n\nKaunsa wala pasand aaya? Aur chahiye to bolo - funny wala ya motivational wala?`;
+  }
+
+  // 4. Translate
+  if (q.includes('translate') || q.includes('english') || q.includes('hindi me') || q.includes('angrezi')) {
+    if (q.includes('jagatsinghpur')) return "🌐 Translate:\n\nHindi: Main Jagatsinghpur se hu\nEnglish: I am from Jagatsinghpur, Odisha.\n\nAur koi line bhejo, main translate kar dunga!";
+    if (q.includes('mera naam')) return "🌐 Translate:\n\nHindi: Mera naam Bablu hai\nEnglish: My name is Bablu.\n\nAur bhejo, sab translate kar dunga!";
+    return "🌐 Translate kar diya!\n\nTumne likha: " + qorig + "\n\nEnglish me iska matlab samjha du? Puri line dobara likh ke bhejo - 'translate karo - .....'";
+  }
+
+  // 5. Website / Code / Content
+  if (q.includes('website') || q.includes('code') || q.includes('content') || q.includes('app') || q.includes('banwana')) {
+    return "💻 Website ke liye content ready hai!\n\nHeading: Aionex - Future ka AI OS\n\nPara: Aionex ek aisa AI Operating System hai jo sochta hai, seekhta hai aur suraksha karta hai. AI Brain, Digital Twin, Health AI sab ek jagah.\n\nPrice: Sirf ₹1499 me tumhari website ban jayegi!\n\nOrder karne ke liye - Call karo 93370 43811\n\nTumhe kis cheez ki website chahiye? Dukaan, school, ya personal? Batao, main pura content likh dunga!";
+  }
+
+  // 6. Motivation / Problem / Sad
+  if (q.includes('motivation') || q.includes('sad') || q.includes('dukhi') || q.includes('haar') || q.includes('tension') || q.includes('man nahi') || q.includes('problem') || q.includes('pareshan') || q.includes('dikkat')) {
+    return "🔥 Suno Bablu bhai!\n\nProblem sabko aati hai, par rukne wala kabhi jeet-ta nahi!\n\nTumne Aionex banaya hai - ye koi chhota kaam nahi hai! Jagatsinghpur se pure India tak jaane wala hai ye!\n\nAaj ek chhota kadam lo:\n1. Ek kaam khatam karo\n2. Ek naye aadmi ko Aionex batao\n3. Kal se behtar bano\n\nBolo, kis cheez me problem aa rahi hai? Paise me, website me, ya man me? Main hal dunga!";
+  }
+
+  // 7. Health
+  if (q.includes('health') || q.includes('sehat') || q.includes('bimar') || q.includes('bukhar') || q.includes('dard') || q.includes('pet')) {
+    return "❤️ Health Tip:\n\n1. Din me 8 glass paani piyo\n2. Raat ko 7-8 ghante so jao\n3. Mobile ko sone se 30 min pehle band kar do\n4. Roz 20 min walk karo\n\nAgar zyada dard hai to doctor ko dikhao, main AI hu - doctor nahi! 😊\n\nTumhe kya ho raha hai exactly batao?";
+  }
+
+  // 8. Padhai / General Knowledge
+  if (q.includes('padhai') || q.includes('exam') || q.includes('question') || q.includes('capital') || q.includes('odisha') || q.includes('india') || q.includes('kaun')) {
+    if (q.includes('capital') && q.includes('odisha')) return "📚 Odisha ki capital - Bhubaneswar hai! Tum wahi ke paas se ho - Jagatsinghpur! 😊 Aur koi GK puchna hai?";
+    if (q.includes('capital') && q.includes('india')) return "📚 India ki capital - New Delhi hai! Aur Odisha ki - Bhubaneswar!";
+    return "📚 Padhai me help kar dunga!\n\nTum kis class / kis subject ka puch rahe ho? Maths, English, GK - sab batao.\n\nExample pucho:\n- Odisha ki capital kya hai?\n- 25 x 48 kitna hota hai?\n- English me translate karo...";
+  }
+
+  // 9. Aionex
+  if (q.includes('aionex')) return "Aionex ek complete AI OS hai - AI Brain, LLM Engine, Deep Learning, Knowledge Graph, Personality Engine, Digital Twin, Health AI, Blockchain, Privacy Vault, Security, Analytics - sab ek jagah!\n\nTumhe kaunsa module sabse zyada pasand hai? Batao, main uska pura detail dunga!";
+
+  // 10. Hi / Hello
+  if (q.includes('hi') || q.includes('hello') || q.includes('namaste') || q.includes('hey')) return "Namaste! 🙏 Smart Board me swagat hai!\n\nBolo kya problem hai?\n- Maths karna hai?\n- Business idea chahiye?\n- Caption likhna hai?\n- Website banwani hai?\n\nKuch bhi likh do, main kar dunga!";
+
+  // 11. Fallback - Har baat ka jawab
+  let fallbacks = [
+    `Samajh gaya! Tumne pucha - "${qorig}"\n\nIska jawab ye hai:\nYe ek bahut accha sawal hai. Iske liye sabse pehle ye samjho - har problem ka hal 3 step me hota hai:\n\n1. Problem ko chhota karo\n2. Ek-ek karke hal karo\n3. Roz thoda-thoda aage badho\n\nAgar tum thoda aur detail me batao ki ye kis cheez se judi problem hai - paisa, website, padhai, ya business - to main pura step-by-step plan bana dunga! Bolo?`,
+    `Wah! Ye wala sawal mast hai - "${qorig}"\n\nMera jawab:\nDekho, iska seedha hal ye hai ki tum pehle ye decide karo ki tumhe kya chahiye - jaldi wala hal ya pakka wala hal?\n\nJaldi wala hal - aaj hi shuru karo, chhote se.\nPakka wala hal - plan bana ke, roz thoda-thoda.\n\nTum batao, tumhe kaunsa chahiye? Main us hisab se pura plan likh dunga!`,
+    `Hmm... "${qorig}" - ispe maine socha.\n\nTumhe sach batau? Iska sabse best hal ye hai:\n\nBablu se baat karo - 93370 43811. Wo tumhe samajh ke hal dega.\n\nPar agar tum chahte ho ki main yahi hal du to thoda aur batao - ye problem kab se hai? Aur tumne ab tak kya-kya try kiya hai?`
+  ];
+  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+}
+
+document.getElementById('boardinput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') sendboard();
+});
+</script>
+
